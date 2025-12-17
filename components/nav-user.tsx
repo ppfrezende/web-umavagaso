@@ -28,10 +28,12 @@ import {
 import { AuthContext, type User } from '@/src/contexts/auth-context'
 import { getInitialsName } from '@/lib/utils'
 import { useContext } from 'react'
+// import { useRouter } from 'next/navigation'
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar()
   const { signOut } = useContext(AuthContext)
+  // const router = useRouter()
 
   return (
     <SidebarMenu>

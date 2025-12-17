@@ -123,6 +123,12 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@eslint/eslintrc':
+        specifier: ^3.3.3
+        version: 3.3.3
+      '@next/eslint-plugin-next':
+        specifier: ^15.1.6
+        version: 15.1.6
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.18
@@ -158,7 +164,7 @@ importers:
         version: 17.23.1(eslint@9.19.0(jiti@2.6.1))(typescript@5.9.3)
       eslint-plugin-prettier:
         specifier: ^5.2.3
-        version: 5.5.4(eslint@9.19.0(jiti@2.6.1))(prettier@3.7.4)
+        version: 5.5.4(eslint-config-prettier@9.1.2(eslint@9.19.0(jiti@2.6.1)))(eslint@9.19.0(jiti@2.6.1))(prettier@3.7.4)
       eslint-plugin-promise:
         specifier: ^7.2.1
         version: 7.2.1(eslint@9.19.0(jiti@2.6.1))
@@ -1617,6 +1623,12 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  eslint-config-prettier@9.1.2:
+    resolution: {integrity: sha512-iI1f+D2ViGn+uvv5HuHVUamg8ll4tN+JRHGc6IJi4TP9Kl976C57fzPXgseXNs8v0iA8aSJpHsTWjDb9QJamGQ==}
+    hasBin: true
+    peerDependencies:
+      eslint: '>=7.0.0'
 
   eslint-config-standard@17.1.0:
     resolution: {integrity: sha512-IwHwmaBNtDK4zDHQukFDW5u/aTb8+meQWZvNFWkiGmbWjD6bqyuSSBxxXKkCftCUzc1zwCH2m/baCNDLGmuO5Q==}
@@ -4223,6 +4235,11 @@ snapshots:
       - eslint-plugin-import-x
       - supports-color
 
+  eslint-config-prettier@9.1.2(eslint@9.19.0(jiti@2.6.1)):
+    dependencies:
+      eslint: 9.19.0(jiti@2.6.1)
+    optional: true
+
   eslint-config-standard@17.1.0(eslint-plugin-import@2.32.0)(eslint-plugin-n@17.23.1(eslint@9.19.0(jiti@2.6.1))(typescript@5.9.3))(eslint-plugin-promise@7.2.1(eslint@9.19.0(jiti@2.6.1)))(eslint@9.19.0(jiti@2.6.1)):
     dependencies:
       eslint: 9.19.0(jiti@2.6.1)
@@ -4334,12 +4351,14 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  eslint-plugin-prettier@5.5.4(eslint@9.19.0(jiti@2.6.1))(prettier@3.7.4):
+  eslint-plugin-prettier@5.5.4(eslint-config-prettier@9.1.2(eslint@9.19.0(jiti@2.6.1)))(eslint@9.19.0(jiti@2.6.1))(prettier@3.7.4):
     dependencies:
       eslint: 9.19.0(jiti@2.6.1)
       prettier: 3.7.4
       prettier-linter-helpers: 1.0.0
       synckit: 0.11.11
+    optionalDependencies:
+      eslint-config-prettier: 9.1.2(eslint@9.19.0(jiti@2.6.1))
 
   eslint-plugin-promise@7.2.1(eslint@9.19.0(jiti@2.6.1)):
     dependencies:
