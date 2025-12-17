@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { AxiosError } from 'axios'
 import { api } from '../services/api-client'
 
-type User = {
+export type User = {
   id: string
   name: string
   email: string
