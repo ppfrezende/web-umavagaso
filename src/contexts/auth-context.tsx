@@ -1,6 +1,12 @@
 'use client'
 
-import { ReactNode, createContext, useEffect, useState } from 'react'
+import {
+  ReactNode,
+  createContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react'
 import { setCookie, parseCookies, destroyCookie } from 'nookies'
 import { useRouter } from 'next/navigation'
 import { AxiosError } from 'axios'
@@ -37,15 +43,6 @@ type AuthProviderProps = {
 export const AuthContext = createContext({} as AuthContextData)
 let authChannel: BroadcastChannel
 
-export function signOut(byBroadcastChannel = false) {
-  destroyCookie(undefined, 'uvs.token', { path: '/' })
-  destroyCookie(undefined, 'uvs.refreshToken', { path: '/' })
-
-  if (!byBroadcastChannel) {
-    authChannel.postMessage('signOut')
-  }
-}
-
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticate, setIsAuthenticate] = useState<boolean>(false)
@@ -56,6 +53,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const router = useRouter()
   const { 'uvs.token': token } = parseCookies()
+
+  const signOut = useCallback(
+    (byBroadcastChannel = false) => {
+      destroyCookie(undefined, 'uvs.token', { path: '/' })
+      destroyCookie(undefined, 'uvs.refreshToken', { path: '/' })
+
+      setUser(null)
+      setIsAuthenticate(false)
+
+      if (!byBroadcastChannel) {
+        authChannel.postMessage('signOut')
+      }
+
+      router.push('/auth/sign-in')
+    },
+    [router]
+  )
 
   useEffect(() => {
     authChannel = new BroadcastChannel('auth')
@@ -70,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           break
       }
     }
-  }, [])
+  }, [signOut])
 
   useEffect(() => {
     if (token) {
@@ -88,10 +102,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setIsLoadingAuth(false)
         })
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoadingAuth(false)
     }
-  }, [router, token])
+  }, [router, signOut, token])
 
   async function signIn({ email, password }: SignInCredentials) {
     try {

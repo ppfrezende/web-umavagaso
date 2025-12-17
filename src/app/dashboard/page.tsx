@@ -1,10 +1,30 @@
 'use client'
 
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { AuthContext } from '@/src/contexts/auth-context'
 
 export default function Dashboard() {
-  const { user } = useContext(AuthContext)
+  const { user, isAuthenticate, isLoadingAuth } = useContext(AuthContext)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoadingAuth && !isAuthenticate) {
+      router.push('/auth/sign-in')
+    }
+  }, [isLoadingAuth, isAuthenticate, router])
+
+  if (isLoadingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    )
+  }
+
+  if (!isAuthenticate || !user) {
+    return null
+  }
 
   return (
     <div className="space-y-6">
