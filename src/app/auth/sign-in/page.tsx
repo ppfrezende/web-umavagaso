@@ -150,20 +150,15 @@ export default function SignInPage() {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    className="h-11 w-full text-base font-semibold"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                        Entrando...
-                      </>
-                    ) : (
-                      'Entrar'
-                    )}
-                  </Button>
+                  {isSubmitting ? (
+                    <Button className="w-full" disabled>
+                      <LoaderIcon className="animate-spin" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" className="w-full">
+                      Entrar
+                    </Button>
+                  )}
                 </form>
               </CardContent>
             </Card>

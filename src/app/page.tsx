@@ -12,10 +12,10 @@ export default function Home() {
     if (user) {
       switch (user.role) {
         case 'MENTOR':
-          router.replace('/dashboard')
+          router.replace('/dashboard/mentor')
           break
         case 'STUDENT':
-          router.replace('/dashboard')
+          router.replace('/dashboard/student')
           break
         default:
           router.replace('/auth/sign-in')
