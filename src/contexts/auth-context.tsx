@@ -12,13 +12,39 @@ import { useRouter } from 'next/navigation'
 import { AxiosError } from 'axios'
 import { api } from '../services/api-client'
 
+export type Tenant = {
+  id: string
+  name: string
+  description: string | null
+  logo: string | null
+  createdAt: string
+  updatedAt: string
+  ownerId: string
+}
+
+export type UserTenant = {
+  id: string
+  userId: string
+  tenantId: string
+  role: string
+  joinedAt: string
+  updatedAt: string
+  tenant: Tenant
+}
+
 export type User = {
   id: string
   name: string
   email: string
+  emailVerified: string | null
+  emailVerificationToken: string | null
+  emailVerificationExpiry: string | null
+  avatar?: string
   role: string
-  avatar: string
-  created_at: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  userTenants: UserTenant[]
 }
 
 type SignInCredentials = {
@@ -30,6 +56,7 @@ type AuthContextData = {
   signIn: (credentials: SignInCredentials) => Promise<void>
   setIsInvalidCredentials: (value: boolean) => void
   user: User | null
+  setUser: (user: User | null) => void
   isAuthenticate: boolean
   isLoadingAuth: boolean
   isInvalidCredentials: boolean
@@ -113,8 +140,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password,
       })
 
-      const { token, refreshToken, id, name, role, avatar, created_at } =
-        response.data
+      const { token, refreshToken, user } = response.data
 
       setCookie(undefined, 'uvs.token', token, {
         maxAge: 60 * 60 * 24 * 30, // 30 days
@@ -125,14 +151,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         path: '/',
       })
 
-      setUser({
-        id,
-        name,
-        email,
-        role,
-        avatar,
-        created_at,
-      })
+      setUser(user)
 
       api.defaults.headers.Authorization = `Bearer ${token}`
 
@@ -159,6 +178,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isAuthenticate,
         isLoadingAuth,
         user,
+        setUser,
         isInvalidCredentials,
         setIsInvalidCredentials,
       }}

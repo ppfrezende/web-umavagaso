@@ -33,7 +33,6 @@ import { useContext } from 'react'
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar()
   const { signOut } = useContext(AuthContext)
-  // const router = useRouter()
 
   return (
     <SidebarMenu>
