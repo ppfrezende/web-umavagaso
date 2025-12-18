@@ -14,7 +14,7 @@ export default function Dashboard() {
         router.push('/auth/sign-in')
       } else if (user) {
         // Redireciona baseado no role do usuário
-        if (user.role === 'MENTOR') {
+        if (user.role === 'MENTOR' || user.role === 'OWNER') {
           router.replace('/dashboard/mentor')
         } else if (user.role === 'STUDENT') {
           router.replace('/dashboard/student')

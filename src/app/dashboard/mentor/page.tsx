@@ -12,7 +12,7 @@ export default function MentorDashboard() {
     if (!isLoadingAuth) {
       if (!isAuthenticate) {
         router.push('/auth/sign-in')
-      } else if (user?.role !== 'MENTOR') {
+      } else if (user?.role !== 'MENTOR' && user?.role !== 'OWNER') {
         router.push('/dashboard/student')
       }
     }
@@ -26,7 +26,7 @@ export default function MentorDashboard() {
     )
   }
 
-  if (!isAuthenticate || !user || user.role !== 'MENTOR') {
+  if (!isAuthenticate || !user || (user.role !== 'MENTOR' && user.role !== 'OWNER')) {
     return null
   }
 

@@ -37,6 +37,8 @@ interface SignUpFormData {
   email: string
   password: string
   confirmPassword: string
+  tenantName: string
+  tenantDescription?: string
 }
 
 const signUpSchema = z
@@ -49,6 +51,10 @@ const signUpSchema = z
       .string()
       .min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
     confirmPassword: z.string().min(6, { message: 'Confirme sua senha' }),
+    tenantName: z.string().min(3, {
+      message: 'Nome da escola/organização deve ter no mínimo 3 caracteres',
+    }),
+    tenantDescription: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',
@@ -81,10 +87,18 @@ export default function SignUpPage() {
   const handleSignUp: SubmitHandler<SignUpFormData> = async (values) => {
     try {
       setErrorMessage('')
-      await api.post('/users', {
-        name: values.name,
-        email: values.email,
-        password: values.password,
+      await api.post('/users/register-with-tenant', {
+        user: {
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        },
+        tenant: {
+          name: values.tenantName,
+          ...(values.tenantDescription && {
+            description: values.tenantDescription,
+          }),
+        },
       })
 
       setUserEmail(values.email)
@@ -193,6 +207,23 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label htmlFor="tenantName">Nome da Organização</Label>
+                      <Input
+                        onFocus={() => setErrorMessage('')}
+                        {...register('tenantName')}
+                        name="tenantName"
+                        type="text"
+                        id="tenantName"
+                        placeholder="Alfaestrategrancaveira XYZ"
+                      />
+                      {errors.tenantName && (
+                        <p className="text-sm font-medium text-destructive">
+                          {errors?.tenantName?.message?.toString()}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
                       <Label htmlFor="password">Senha</Label>
                       <Input
                         onFocus={() => setErrorMessage('')}
@@ -226,14 +257,6 @@ export default function SignUpPage() {
                       )}
                     </div>
 
-                    {errorMessage && (
-                      <div className="rounded-lg bg-destructive/10 p-3">
-                        <p className="text-sm font-medium text-destructive">
-                          {errorMessage}
-                        </p>
-                      </div>
-                    )}
-
                     <button
                       type="button"
                       onClick={handleShowPassword}
@@ -249,6 +272,14 @@ export default function SignUpPage() {
                         </div>
                       )}
                     </button>
+
+                    {errorMessage && (
+                      <div className="rounded-lg bg-destructive/10 p-3">
+                        <p className="text-sm font-medium text-destructive">
+                          {errorMessage}
+                        </p>
+                      </div>
+                    )}
 
                     {isSubmitting ? (
                       <Button className="w-full" disabled>

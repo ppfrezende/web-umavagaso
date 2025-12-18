@@ -1,17 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import {
-  GalleryVerticalEnd,
-  Settings2,
-  Building2,
-  Layers,
-  Users,
-} from 'lucide-react'
+import { Settings2, Layers, Users, LayoutDashboard } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
-import { TeamSwitcher } from '@/components/team-switcher'
 import {
   Sidebar,
   SidebarContent,
@@ -20,32 +13,15 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { AuthContext } from '@/src/contexts/auth-context'
+import { TenantComponent } from './tenant-component'
 
 // This is sample data.
 const data = {
-  teams: [
-    {
-      name: 'OQF',
-      logo: GalleryVerticalEnd,
-      // plan: 'Enterprise',
-    },
-  ],
   navMain: [
     {
-      title: 'Onboarding',
-      url: '#',
-      icon: Building2,
-      isActive: true,
-      items: [
-        {
-          title: 'Criar Tenant',
-          url: '#',
-        },
-        {
-          title: 'Configurar Mentoria',
-          url: '#',
-        },
-      ],
+      title: 'Dashboard',
+      url: '/dashboard/mentor',
+      icon: LayoutDashboard,
     },
     {
       title: 'Configuração de Fases',
@@ -90,24 +66,16 @@ const data = {
       ],
     },
     {
-      title: 'Settings',
-      url: '#',
+      title: 'Configurações',
+      url: '/dashboard/mentor/settings',
       icon: Settings2,
       items: [
         {
-          title: 'General',
-          url: '#',
+          title: 'Geral',
+          url: '/dashboard/mentor/settings',
         },
         {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
+          title: 'Time',
           url: '#',
         },
       ],
@@ -120,13 +88,34 @@ export function SidebarMentor({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { user } = React.useContext(AuthContext)
+
+  // Verifica se o usuário é owner do tenant
+  const isOwner = React.useMemo(() => {
+    if (!user || !user.userTenants || user.userTenants.length === 0) {
+      return false
+    }
+    const currentTenant = user.userTenants[0].tenant
+    return currentTenant.ownerId === user.id
+  }, [user])
+
+  // Filtra os items do navMain baseado se é owner
+  const filteredNavMain = React.useMemo(() => {
+    return data.navMain.filter((item) => {
+      // Se não for owner, remove a seção Settings
+      if (!isOwner && item.title === 'Settings') {
+        return false
+      }
+      return true
+    })
+  }, [isOwner])
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        {user && <TenantComponent tenant={user.userTenants[0].tenant} />}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />
