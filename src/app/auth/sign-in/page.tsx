@@ -23,7 +23,8 @@ import { AuthContext } from '@/src/contexts/auth-context'
 import logo from '@/public/logo.svg'
 import logoDark from '@/public/logoDark.svg'
 import sideImage from '@/public/side-image-login.png'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { ThemeSwitcher } from '@/components/theme-switcher'
+import Link from 'next/link'
 
 interface SignInFormData {
   email: string
@@ -62,7 +63,7 @@ export default function SignInPage() {
         {/* Left side - Login Card */}
         <div className="relative flex h-full flex-col items-center justify-center p-8">
           <div className="absolute right-8 top-8">
-            <ThemeToggle />
+            <ThemeSwitcher />
           </div>
 
           <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-112.5">
@@ -83,7 +84,7 @@ export default function SignInPage() {
 
             <Card className="border-2">
               <CardHeader>
-                <CardTitle className="text-2xl">Login</CardTitle>
+                <CardTitle className="text-2xl">Entrar</CardTitle>
                 <CardDescription>
                   Digite seu e-mail e senha para continuar
                 </CardDescription>
@@ -150,33 +151,30 @@ export default function SignInPage() {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    className="h-11 w-full text-base font-semibold"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                        Entrando...
-                      </>
-                    ) : (
-                      'Entrar'
-                    )}
-                  </Button>
+                  {isSubmitting ? (
+                    <Button className="w-full" disabled>
+                      <LoaderIcon className="animate-spin" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" className="w-full">
+                      Entrar
+                    </Button>
+                  )}
                 </form>
               </CardContent>
             </Card>
 
             <div className="flex items-center text-sm gap-2 justify-center">
               <p className="">Ainda não tem conta?</p>
-              <strong>Criar conta</strong>
+              <Link href="/auth/sign-up">
+                <strong className="hover:underline">Criar conta</strong>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Right side - Image */}
-        <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex">
+        <div className="relative hidden h-full flex-col bg-transparent p-10 lg:flex">
           <div className="absolute inset-0 overflow-hidden rounded-l-2xl">
             <Image
               src={sideImage}

@@ -1,6 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import { parseCookies, setCookie } from 'nookies'
-import { signOut } from '../contexts/auth-context'
+import { parseCookies, setCookie, destroyCookie } from 'nookies'
 import { AuthTokenError } from './_errors/auth-token-error'
 
 interface AxiosErrorResponse {
@@ -89,8 +88,11 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestQueue.forEach((request) => request.onFailure(err))
                 failedRequestQueue = []
 
-                if (typeof window === 'undefined') {
-                  signOut()
+                if (typeof window !== 'undefined') {
+                  destroyCookie(undefined, 'uvs.token', { path: '/' })
+                  destroyCookie(undefined, 'uvs.refreshToken', { path: '/' })
+                  const authChannel = new BroadcastChannel('auth')
+                  authChannel.postMessage('signOut')
                 }
               })
 
@@ -116,7 +118,10 @@ export function setupAPIClient(ctx = undefined) {
           })
         } else {
           if (typeof window !== 'undefined') {
-            signOut()
+            destroyCookie(undefined, 'uvs.token', { path: '/' })
+            destroyCookie(undefined, 'uvs.refreshToken', { path: '/' })
+            const authChannel = new BroadcastChannel('auth')
+            authChannel.postMessage('signOut')
           } else {
             return Promise.reject(new AuthTokenError())
           }

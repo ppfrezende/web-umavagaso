@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { ThemeToggle } from './theme-toggle'
+import { ThemeSwitcher } from './theme-switcher'
 
 export default function Header() {
   return (
@@ -30,7 +30,7 @@ export default function Header() {
             </BreadcrumbList>
           </Breadcrumb>
         </div>
-        <ThemeToggle />
+        <ThemeSwitcher />
       </header>
     </SidebarInset>
   )
