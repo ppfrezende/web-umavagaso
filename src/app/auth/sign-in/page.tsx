@@ -24,6 +24,7 @@ import logo from '@/public/logo.svg'
 import logoDark from '@/public/logoDark.svg'
 import sideImage from '@/public/side-image-login.png'
 import { ThemeSwitcher } from '@/components/theme-switcher'
+import Link from 'next/link'
 
 interface SignInFormData {
   email: string
@@ -83,7 +84,7 @@ export default function SignInPage() {
 
             <Card className="border-2">
               <CardHeader>
-                <CardTitle className="text-2xl">Login</CardTitle>
+                <CardTitle className="text-2xl">Entrar</CardTitle>
                 <CardDescription>
                   Digite seu e-mail e senha para continuar
                 </CardDescription>
@@ -165,7 +166,9 @@ export default function SignInPage() {
 
             <div className="flex items-center text-sm gap-2 justify-center">
               <p className="">Ainda não tem conta?</p>
-              <strong>Criar conta</strong>
+              <Link href="/auth/sign-up">
+                <strong className="hover:underline">Criar conta</strong>
+              </Link>
             </div>
           </div>
         </div>
