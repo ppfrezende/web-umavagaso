@@ -6,20 +6,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/src/services/api-client'
 import type { Tenant } from '@/src/contexts/auth-context'
+import { Textarea } from './ui/textarea'
 
 interface TenantFormProps {
   tenant: Tenant
   onUpdate?: (updatedTenant: Tenant) => void
 }
 
-export function TenantForm({
-  tenant,
-  onUpdate
-}: TenantFormProps) {
+export function TenantForm({ tenant, onUpdate }: TenantFormProps) {
   const [name, setName] = React.useState(tenant.name || '')
-  const [description, setDescription] = React.useState(
-    tenant.description || ''
-  )
+  const [description, setDescription] = React.useState(tenant.description || '')
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState(false)
@@ -61,11 +57,11 @@ export function TenantForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="tenant-name">Nome do Tenant *</Label>
+        <Label htmlFor="tenant-name">Nome da Mentoria *</Label>
         <Input
           id="tenant-name"
           type="text"
-          placeholder="Digite o nome do tenant"
+          placeholder="Digite o nome da mentoria"
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={isLoading}
@@ -74,22 +70,18 @@ export function TenantForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="tenant-description">Descrição do Tenant</Label>
-        <Input
+        <Label htmlFor="tenant-description">Descrição da Mentoria</Label>
+        <Textarea
           id="tenant-description"
-          type="text"
-          placeholder="Digite a descrição do tenant"
+          rows={4}
+          placeholder="Digite a descrição da mentoria"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           disabled={isLoading}
         />
       </div>
 
-      {error && (
-        <div className="text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-sm text-destructive">{error}</div>}
 
       {success && (
         <div className="text-sm text-green-600 dark:text-green-400">
@@ -97,11 +89,7 @@ export function TenantForm({
         </div>
       )}
 
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? 'Salvando...' : 'Salvar Alterações'}
       </Button>
     </form>

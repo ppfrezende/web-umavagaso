@@ -15,13 +15,35 @@ import {
 import { AuthContext } from '@/src/contexts/auth-context'
 import { TenantComponent } from './tenant-component'
 
-// This is sample data.
 const data = {
   navMain: [
     {
       title: 'Dashboard',
       url: '/dashboard/mentor',
       icon: LayoutDashboard,
+    },
+    {
+      title: 'Gestão de Alunos',
+      url: '#',
+      icon: Users,
+      items: [
+        {
+          title: 'Convites',
+          url: '/dashboard/mentor/invitations',
+        },
+        {
+          title: 'Lista de alunos',
+          url: '#',
+        },
+        {
+          title: 'Acompanhar Progresso',
+          url: '#',
+        },
+        {
+          title: 'Aprovar Avanços',
+          url: '#',
+        },
+      ],
     },
     {
       title: 'Configuração de Fases',
@@ -42,29 +64,7 @@ const data = {
         },
       ],
     },
-    {
-      title: 'Gestão de Alunos',
-      url: '#',
-      icon: Users,
-      items: [
-        {
-          title: 'Convidar Alunos',
-          url: '#',
-        },
-        {
-          title: 'Acompanhar Progresso',
-          url: '#',
-        },
-        {
-          title: 'Aprovar Avanços',
-          url: '#',
-        },
-        {
-          title: 'Concursos',
-          url: '#',
-        },
-      ],
-    },
+
     {
       title: 'Configurações',
       url: '/dashboard/mentor/settings',

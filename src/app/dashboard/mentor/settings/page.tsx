@@ -56,7 +56,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
         <p className="text-muted-foreground">
-          Gerencie as configurações do seu tenant.
+          Gerencie as configurações da sua mentoria.
         </p>
       </div>
 
@@ -64,9 +64,9 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Informações do Tenant</CardTitle>
+          <CardTitle>Informações da Mantoria</CardTitle>
           <CardDescription>
-            Atualize as informações básicas do seu tenant.
+            Atualize as informações básicas da sua mentoria.
           </CardDescription>
         </CardHeader>
         <CardContent>
