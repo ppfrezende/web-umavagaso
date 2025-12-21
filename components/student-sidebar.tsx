@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Settings2, Layers, Users, LayoutDashboard } from 'lucide-react'
+import { BookOpen, Target, TrendingUp, LayoutDashboard } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
@@ -19,63 +19,58 @@ const data = {
   navMain: [
     {
       title: 'Dashboard',
-      url: '/dashboard/mentor',
+      url: '/dashboard/student',
       icon: LayoutDashboard,
     },
     {
-      title: 'Gestão de Alunos',
+      title: 'Meu Progresso',
       url: '#',
-      icon: Users,
+      icon: TrendingUp,
       items: [
         {
-          title: 'Convites',
-          url: '/dashboard/mentor/invitations',
-        },
-        {
-          title: 'Lista de alunos',
+          title: 'Visão Geral',
           url: '#',
         },
         {
-          title: 'Acompanhar Progresso',
-          url: '#',
-        },
-        {
-          title: 'Aprovar Avanços',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Configuração de Fases',
-      url: '#',
-      icon: Layers,
-      items: [
-        {
-          title: 'Templates de Fases',
+          title: 'Fases Concluídas',
           url: '#',
         },
         {
           title: 'Métricas',
           url: '#',
         },
+      ],
+    },
+    {
+      title: 'Fases',
+      url: '#',
+      icon: Target,
+      items: [
         {
-          title: 'Regras de Avanço',
+          title: 'Fase Atual',
+          url: '#',
+        },
+        {
+          title: 'Próximas Fases',
+          url: '#',
+        },
+        {
+          title: 'Histórico',
           url: '#',
         },
       ],
     },
-
     {
-      title: 'Configurações',
-      url: '/dashboard/mentor/settings',
-      icon: Settings2,
+      title: 'Materiais',
+      url: '#',
+      icon: BookOpen,
       items: [
         {
-          title: 'Geral',
-          url: '/dashboard/mentor/settings',
+          title: 'Recursos',
+          url: '#',
         },
         {
-          title: 'Time',
+          title: 'Atividades',
           url: '#',
         },
       ],
@@ -84,30 +79,23 @@ const data = {
   projects: [],
 }
 
-export function SidebarMentor({
+export function SidebarStudent({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { user } = React.useContext(AuthContext)
+  const [currentTenantId, setCurrentTenantId] = React.useState<string>()
 
-  // Verifica se o usuário é owner do tenant
-  const isOwner = React.useMemo(() => {
-    if (!user || !user.userTenants || user.userTenants.length === 0) {
-      return false
+  // Define o tenant inicial quando o usuário estiver disponível
+  React.useEffect(() => {
+    if (user && user.userTenants && user.userTenants.length > 0 && !currentTenantId) {
+      setCurrentTenantId(user.userTenants[0].tenantId)
     }
-    const currentTenant = user.userTenants[0].tenant
-    return currentTenant.ownerId === user.id
-  }, [user])
+  }, [user, currentTenantId])
 
-  // Filtra os items do navMain baseado se é owner
-  const filteredNavMain = React.useMemo(() => {
-    return data.navMain.filter((item) => {
-      // Se não for owner, remove a seção Settings
-      if (!isOwner && item.title === 'Settings') {
-        return false
-      }
-      return true
-    })
-  }, [isOwner])
+  const handleTenantChange = (tenantId: string) => {
+    setCurrentTenantId(tenantId)
+    // Aqui você pode adicionar lógica adicional, como recarregar dados específicos do tenant
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -115,11 +103,13 @@ export function SidebarMentor({
         {user && user.userTenants && (
           <TenantComponent
             userTenants={user.userTenants}
+            currentTenantId={currentTenantId}
+            onTenantChange={handleTenantChange}
           />
         )}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={filteredNavMain} />
+        <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />
