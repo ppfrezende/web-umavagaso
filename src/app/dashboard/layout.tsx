@@ -1,5 +1,9 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
 import Header from '@/components/header'
 import { SidebarMentor } from '@/components/mentor-sidebar'
+import { SidebarStudent } from '@/components/student-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
 export default function DashboardLayout({
@@ -7,10 +11,13 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const isMentorRoute = pathname?.startsWith('/dashboard/mentor')
+
   return (
     <div className="min-h-screen">
       <SidebarProvider>
-        <SidebarMentor />
+        {isMentorRoute ? <SidebarMentor /> : <SidebarStudent />}
         <main className="flex w-full flex-col px-6">
           <div className="sticky top-0 z-50">
             {/* Blur overlay - camada de fundo */}
