@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { AuthContext } from '@/src/contexts/auth-context'
-import { TenantForm } from '@/components/tenant-description-form'
 import {
   Card,
   CardContent,
@@ -11,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { TenantForm } from '@/components/tenant/tenant-description-form'
 
 export default function SettingsPage() {
   const { user, setUser } = React.useContext(AuthContext)

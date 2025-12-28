@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation'
 import Header from '@/components/header'
-import { SidebarMentor } from '@/components/mentor-sidebar'
-import { SidebarStudent } from '@/components/student-sidebar'
+import { SidebarMentor } from '@/components/sidebar/mentor-sidebar'
+import { SidebarStudent } from '@/components/sidebar/student-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
 export default function DashboardLayout({

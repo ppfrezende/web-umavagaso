@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AuthContext } from '@/src/contexts/auth-context'
-import { useInvitations } from '@/src/hooks/use-invitations'
+import { usePhaseTemplates } from '@/src/hooks/use-phase-templates'
 import {
   Card,
   CardContent,
@@ -14,30 +14,28 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { InvitationsTable } from '@/components/invitations-table'
+import { PhaseTemplatesTable } from '@/components/phase-templates-table'
 
-export default function InvitationsPage() {
+export default function PhaseTemplatesPage() {
   const { user } = useContext(AuthContext)
   const router = useRouter()
 
-  // Pega o primeiro tenant do usuário (considerando que o mentor tem um tenant principal)
   const userTenant = user?.userTenants?.[0]
   const tenantId = userTenant?.tenantId
   const userRole = userTenant?.role
 
   const {
-    data: invitations = [],
+    data: phaseTemplates = [],
     isLoading,
-  } = useInvitations({
+  } = usePhaseTemplates({
     tenantId,
     enabled: !!tenantId && !!user,
   })
 
   useEffect(() => {
-    // Verifica se o usuário tem permissão (OWNER ou MENTOR)
     if (user && userRole && userRole !== 'OWNER' && userRole !== 'MENTOR') {
       toast.error('Acesso negado', {
-        description: 'Apenas mentores e proprietários podem gerenciar convites',
+        description: 'Apenas mentores e proprietários podem gerenciar templates de fase',
       })
       router.push('/dashboard/mentor')
       return
@@ -56,9 +54,9 @@ export default function InvitationsPage() {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Convites</CardTitle>
+          <CardTitle>Templates de Fase</CardTitle>
           <CardDescription>
-            Visualize, reenvie ou cancele convites pendentes
+            Gerencie os templates de fase para estruturar o progresso dos alunos
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -67,8 +65,8 @@ export default function InvitationsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <InvitationsTable
-              invitations={invitations}
+            <PhaseTemplatesTable
+              phaseTemplates={phaseTemplates}
               tenantId={tenantId}
             />
           )}

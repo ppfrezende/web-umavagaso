@@ -13,7 +13,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { AuthContext } from '@/src/contexts/auth-context'
-import { TenantComponent } from './tenant-component'
+import { TenantComponent } from '../tenant/tenant-component'
 
 const data = {
   navMain: [
@@ -33,16 +33,16 @@ const data = {
         },
         {
           title: 'Lista de alunos',
-          url: '#',
+          url: '/dashboard/mentor/students',
         },
-        {
-          title: 'Acompanhar Progresso',
-          url: '#',
-        },
-        {
-          title: 'Aprovar Avanços',
-          url: '#',
-        },
+        // {
+        //   title: 'Acompanhar Progresso',
+        //   url: '#',
+        // },
+        // {
+        //   title: 'Aprovar Avanços',
+        //   url: '#',
+        // },
       ],
     },
     {
@@ -52,16 +52,16 @@ const data = {
       items: [
         {
           title: 'Templates de Fases',
-          url: '#',
+          url: '/dashboard/mentor/phase-templates',
         },
-        {
-          title: 'Métricas',
-          url: '#',
-        },
-        {
-          title: 'Regras de Avanço',
-          url: '#',
-        },
+        // {
+        //   title: 'Métricas',
+        //   url: '#',
+        // },
+        // {
+        //   title: 'Regras de Avanço',
+        //   url: '#',
+        // },
       ],
     },
 
@@ -113,9 +113,7 @@ export function SidebarMentor({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         {user && user.userTenants && (
-          <TenantComponent
-            userTenants={user.userTenants}
-          />
+          <TenantComponent userTenants={user.userTenants} />
         )}
       </SidebarHeader>
       <SidebarContent>

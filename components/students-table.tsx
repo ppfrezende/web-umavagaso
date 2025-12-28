@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,19 +12,19 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { useState } from 'react'
 import {
   MoreHorizontal,
-  Mail,
-  Trash2,
-  Loader2,
+  Users,
   ArrowUpDown,
+  Eye,
+  UserX,
+  UserCheck,
+  Loader2,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-import type { Invitation, InvitationStatus } from '@/src/types/invitation'
-import { useInvitationActions } from '@/src/hooks/use-invitation-actions'
+import type { Student } from '@/src/hooks/use-students'
 import {
   Table,
   TableBody,
@@ -42,30 +42,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { InviteStudentDialog } from './invite-student-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getInitialsName } from '@/lib/utils'
 
-interface InvitationsTableProps {
-  invitations: Invitation[]
+interface StudentsTableProps {
+  students: Student[]
   tenantId: string
+  refetch: () => void
+  isLoading?: boolean
 }
 
 const statusMap: Record<
-  InvitationStatus,
-  { label: string; variant: 'default' | 'success' | 'destructive' | 'warning' }
+  string,
+  { label: string; variant: 'default' | 'success' | 'destructive' }
 > = {
-  PENDING: { label: 'Pendente', variant: 'warning' },
-  ACCEPTED: { label: 'Aceito', variant: 'success' },
-  CANCELLED: { label: 'Cancelado', variant: 'destructive' },
-  EXPIRED: { label: 'Expirado', variant: 'destructive' },
+  true: { label: 'Ativo', variant: 'success' },
+  false: { label: 'Inativo', variant: 'destructive' },
 }
 
-export function InvitationsTable({
-  invitations,
-  tenantId,
-}: InvitationsTableProps) {
+export function StudentsTable({
+  students,
+  isLoading = false,
+}: StudentsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const { resendInvitation, cancelInvitation } = useInvitationActions(tenantId)
 
   const formatDate = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), {
@@ -74,12 +74,40 @@ export function InvitationsTable({
     })
   }
 
-  const isExpired = (expiresAt: string) => {
-    return new Date(expiresAt) < new Date()
-  }
-
-  const columns = useMemo<ColumnDef<Invitation>[]>(
+  const columns = useMemo<ColumnDef<Student>[]>(
     () => [
+      {
+        accessorKey: 'name',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === 'asc')
+              }
+            >
+              Nome
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => {
+          const student = row.original
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar>
+                {student.avatar && (
+                  <AvatarImage src={student.avatar} alt={student.name} />
+                )}
+                <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                  {getInitialsName(student.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="font-medium">{student.name}</div>
+            </div>
+          )
+        },
+      },
       {
         accessorKey: 'email',
         header: ({ column }) => {
@@ -96,25 +124,20 @@ export function InvitationsTable({
           )
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue('email')}</div>
+          <div className="text-muted-foreground">{row.getValue('email')}</div>
         ),
       },
       {
-        accessorKey: 'status',
+        accessorKey: 'isActive',
         header: 'Status',
         cell: ({ row }) => {
-          const invitation = row.original
-          const expired = isExpired(invitation.expiresAt)
-          const status = expired ? 'EXPIRED' : invitation.status
-          const statusInfo = statusMap[status]
+          const isActive = row.getValue('isActive') as boolean
+          const statusInfo = statusMap[String(isActive)]
 
           return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
         },
         filterFn: (row, _id, value) => {
-          const invitation = row.original
-          const expired = isExpired(invitation.expiresAt)
-          const status = expired ? 'EXPIRED' : invitation.status
-          return value.includes(status)
+          return value.includes(String(row.getValue('isActive')))
         },
       },
       {
@@ -127,7 +150,7 @@ export function InvitationsTable({
                 column.toggleSorting(column.getIsSorted() === 'asc')
               }
             >
-              Enviado
+              Cadastrado
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           )
@@ -139,82 +162,34 @@ export function InvitationsTable({
         ),
       },
       {
-        accessorKey: 'expiresAt',
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === 'asc')
-              }
-            >
-              Expira
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
-        cell: ({ row }) => (
-          <div className="text-muted-foreground">
-            {formatDate(row.getValue('expiresAt'))}
-          </div>
-        ),
-      },
-      {
         id: 'actions',
         header: () => <div className="text-right">Ações</div>,
         cell: ({ row }) => {
-          const invitation = row.original
-          const expired = isExpired(invitation.expiresAt)
-          const isLoadingResend = resendInvitation.isPending
-          const isLoadingCancel = cancelInvitation.isPending
+          const student = row.original
 
           return (
             <div className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={isLoadingResend || isLoadingCancel}
-                  >
-                    {isLoadingResend || isLoadingCancel ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <MoreHorizontal className="h-4 w-4" />
-                    )}
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="h-4 w-4" />
                     <span className="sr-only">Abrir menu</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {invitation.status === 'PENDING' && !expired && (
-                    <DropdownMenuItem
-                      onClick={() =>
-                        resendInvitation.mutate({
-                          invitationId: invitation.id,
-                          email: invitation.email,
-                        })
-                      }
-                    >
-                      <Mail className="mr-2 h-4 w-4" />
-                      Reenviar convite
+                  <DropdownMenuItem>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver detalhes
+                  </DropdownMenuItem>
+                  {student.isActive ? (
+                    <DropdownMenuItem className="text-destructive">
+                      <UserX className="mr-2 h-4 w-4" />
+                      Desativar aluno
                     </DropdownMenuItem>
-                  )}
-                  {invitation.status === 'PENDING' && (
-                    <DropdownMenuItem
-                      onClick={() =>
-                        cancelInvitation.mutate({ invitationId: invitation.id })
-                      }
-                      className="text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Cancelar convite
-                    </DropdownMenuItem>
-                  )}
-                  {(invitation.status === 'ACCEPTED' ||
-                    invitation.status === 'CANCELLED' ||
-                    expired) && (
-                    <DropdownMenuItem disabled>
-                      Nenhuma ação disponível
+                  ) : (
+                    <DropdownMenuItem>
+                      <UserCheck className="mr-2 h-4 w-4" />
+                      Ativar aluno
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -224,11 +199,11 @@ export function InvitationsTable({
         },
       },
     ],
-    [resendInvitation, cancelInvitation]
+    []
   )
 
   const table = useReactTable({
-    data: invitations,
+    data: students,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -247,33 +222,38 @@ export function InvitationsTable({
     },
   })
 
-  if (invitations.length === 0) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Mail className="h-12 w-12 text-muted-foreground" />
-        <h3 className="text-lg font-semibold">Nenhum convite enviado</h3>
-        <p className="text-sm text-muted-foreground">
-          Comece convidando um aluno para sua plataforma
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+        <p className="text-sm text-muted-foreground">Carregando alunos...</p>
+      </div>
+    )
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Users className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold">Nenhum aluno cadastrado</h3>
+        <p className="text-sm text-muted-foreground mt-2">
+          Convide alunos para começar a usar a plataforma
         </p>
-        <div className="py-2">
-          <InviteStudentDialog tenantId={tenantId} />
-        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
         <Input
-          placeholder="Filtrar por email..."
-          value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+          placeholder="Filtrar por nome..."
+          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
-            table.getColumn('email')?.setFilterValue(event.target.value)
+            table.getColumn('name')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <InviteStudentDialog tenantId={tenantId} />
       </div>
 
       <div className="rounded-md border">
@@ -329,7 +309,7 @@ export function InvitationsTable({
 
       <div className="flex items-center justify-between px-2">
         <div className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} convite(s) no total
+          {table.getFilteredRowModel().rows.length} aluno(s) no total
         </div>
         <div className="flex items-center space-x-2">
           <Button

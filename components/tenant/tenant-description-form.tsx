@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/src/services/api-client'
 import type { Tenant } from '@/src/contexts/auth-context'
-import { Textarea } from './ui/textarea'
+import { Textarea } from '../ui/textarea'
 
 interface TenantFormProps {
   tenant: Tenant

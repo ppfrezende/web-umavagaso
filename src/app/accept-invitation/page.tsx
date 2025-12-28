@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Loader2, CheckCircle2, XCircle, Mail, Eye, EyeOff } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
 import { AuthContext } from '@/src/contexts/auth-context'
-import { api } from '@/src/services/api-client'
+import { useAcceptInvitation } from '@/src/hooks/use-accept-invitation'
 import {
   Card,
   CardContent,
@@ -21,6 +21,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
+
+import logo from '@/public/logo.svg'
+import logoDark from '@/public/logoDark.svg'
+import { useTheme } from 'next-themes'
 
 type InvitationStatus =
   | 'loading'
@@ -51,12 +56,18 @@ const acceptInvitationSchema = z
   })
 
 function AcceptInvitationContent() {
+  const { theme, systemTheme } = useTheme()
+  const currentTheme = theme === 'system' ? systemTheme : theme
+  const brand = currentTheme === 'dark' ? logoDark : logo
+
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, signOut } = useContext(AuthContext)
   const [status, setStatus] = useState<InvitationStatus>('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  const acceptInvitationMutation = useAcceptInvitation()
 
   const token = searchParams.get('token')
 
@@ -65,7 +76,7 @@ function AcceptInvitationContent() {
       resolver: zodResolver(acceptInvitationSchema),
     })
 
-  const { isSubmitting, errors } = formState
+  const { errors } = formState
 
   useEffect(() => {
     if (!token) {
@@ -90,34 +101,41 @@ function AcceptInvitationContent() {
       return
     }
 
-    try {
-      setErrorMessage('')
-      await api.post(`/invitations/${token}/accept`, {
+    setErrorMessage('')
+
+    acceptInvitationMutation.mutate(
+      {
+        token,
         name: values.name,
         password: values.password,
-      })
+      },
+      {
+        onSuccess: () => {
+          setStatus('success')
+          toast.success('Convite aceito com sucesso!', {
+            description: 'Você será redirecionado para fazer login.',
+          })
 
-      setStatus('success')
-      toast.success('Convite aceito com sucesso!', {
-        description: 'Você será redirecionado para fazer login.',
-      })
-
-      setTimeout(() => {
-        router.push('/auth/sign-in')
-      }, 2000)
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        const message = err.response?.data?.message || 'Erro ao aceitar convite'
-        setErrorMessage(message)
-        toast.error('Erro ao aceitar convite', {
-          description: message,
-        })
+          setTimeout(() => {
+            router.push('/auth/sign-in')
+          }, 2000)
+        },
+        onError: (err) => {
+          if (err instanceof AxiosError) {
+            const message =
+              err.response?.data?.message || 'Erro ao aceitar convite'
+            setErrorMessage(message)
+            toast.error('Erro ao aceitar convite', {
+              description: message,
+            })
+          }
+        },
       }
-    }
+    )
   }
 
   const handleSignOut = async () => {
-    await signOut()
+    signOut()
     setStatus('form')
   }
 
@@ -144,8 +162,8 @@ function AcceptInvitationContent() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Mail className="h-12 w-12 text-yellow-500" />
+            <div className="flex justify-center items-center">
+              <Image src={brand} alt="Logo" className="mb-4 h-12 w-auto" />
             </div>
             <CardTitle>Você já está autenticado</CardTitle>
             <CardDescription>
@@ -174,8 +192,8 @@ function AcceptInvitationContent() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Mail className="h-12 w-12 text-primary" />
+            <div className="flex justify-center items-center">
+              <Image src={brand} alt="Logo" className="mb-4 h-12 w-auto" />
             </div>
             <CardTitle>Complete seu cadastro</CardTitle>
             <CardDescription>
@@ -263,7 +281,7 @@ function AcceptInvitationContent() {
                 </div>
               )}
 
-              {isSubmitting ? (
+              {acceptInvitationMutation.isPending ? (
                 <Button className="w-full" disabled>
                   <Loader2 className="animate-spin" />
                 </Button>
@@ -288,9 +306,7 @@ function AcceptInvitationContent() {
               <CheckCircle2 className="h-12 w-12 text-green-500" />
             </div>
             <CardTitle>Convite aceito!</CardTitle>
-            <CardDescription>
-              Sua conta foi criada com sucesso
-            </CardDescription>
+            <CardDescription>Sua conta foi criada com sucesso</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-sm text-muted-foreground mb-4">
