@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,19 +12,19 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { useState } from 'react'
 import {
   MoreHorizontal,
-  Mail,
-  Trash2,
   Loader2,
   ArrowUpDown,
+  Edit,
+  Trash2,
+  FileText,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
-import type { Invitation, InvitationStatus } from '@/src/types/invitation'
-import { useInvitationActions } from '@/src/hooks/use-invitation-actions'
+import type { PhaseTemplate } from '@/src/types/phase-template'
+import { usePhaseTemplateActions } from '@/src/hooks/use-phase-template-actions'
 import {
   Table,
   TableBody,
@@ -42,46 +42,26 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { InviteStudentDialog } from './invite-student-dialog'
+import { CreatePhaseTemplateDialog } from './create-phase-template-dialog'
 
-interface InvitationsTableProps {
-  invitations: Invitation[]
+interface PhaseTemplatesTableProps {
+  phaseTemplates: PhaseTemplate[]
   tenantId: string
 }
 
-const statusMap: Record<
-  InvitationStatus,
-  { label: string; variant: 'default' | 'success' | 'destructive' | 'warning' }
-> = {
-  PENDING: { label: 'Pendente', variant: 'warning' },
-  ACCEPTED: { label: 'Aceito', variant: 'success' },
-  CANCELLED: { label: 'Cancelado', variant: 'destructive' },
-  EXPIRED: { label: 'Expirado', variant: 'destructive' },
-}
-
-export function InvitationsTable({
-  invitations,
+export function PhaseTemplatesTable({
+  phaseTemplates,
   tenantId,
-}: InvitationsTableProps) {
+}: PhaseTemplatesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const { resendInvitation, cancelInvitation } = useInvitationActions(tenantId)
+  const [editingTemplate, setEditingTemplate] = useState<PhaseTemplate | null>(null)
+  const { updatePhaseTemplate, deletePhaseTemplate } = usePhaseTemplateActions(tenantId)
 
-  const formatDate = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), {
-      addSuffix: true,
-      locale: ptBR,
-    })
-  }
-
-  const isExpired = (expiresAt: string) => {
-    return new Date(expiresAt) < new Date()
-  }
-
-  const columns = useMemo<ColumnDef<Invitation>[]>(
+  const columns = useMemo<ColumnDef<PhaseTemplate>[]>(
     () => [
       {
-        accessorKey: 'email',
+        accessorKey: 'defaultOrder',
         header: ({ column }) => {
           return (
             <Button
@@ -90,83 +70,108 @@ export function InvitationsTable({
                 column.toggleSorting(column.getIsSorted() === 'asc')
               }
             >
-              Email
+              Ordem
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           )
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue('email')}</div>
+          <div className="font-medium text-center w-16">{row.getValue('defaultOrder')}</div>
         ),
       },
       {
-        accessorKey: 'status',
+        accessorKey: 'name',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === 'asc')
+              }
+            >
+              Nome
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue('name')}</div>
+        ),
+      },
+      {
+        accessorKey: 'purpose',
+        header: 'Propósito',
+        cell: ({ row }) => (
+          <div className="max-w-md truncate text-muted-foreground">
+            {row.getValue('purpose')}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'suggestedDurationDays',
+        header: 'Duração (dias)',
+        cell: ({ row }) => {
+          const duration = row.getValue('suggestedDurationDays') as number | null
+          return (
+            <div className="text-center">
+              {duration ?? '-'}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'defaultMinAccuracy',
+        header: 'Precisão Mín.',
+        cell: ({ row }) => {
+          const accuracy = row.getValue('defaultMinAccuracy') as string | null
+          return (
+            <div className="text-center">
+              {accuracy ? `${parseFloat(accuracy).toFixed(0)}%` : '-'}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'defaultMinCompletion',
+        header: 'Conclusão Mín.',
+        cell: ({ row }) => {
+          const completion = row.getValue('defaultMinCompletion') as string | null
+          return (
+            <div className="text-center">
+              {completion ? `${parseFloat(completion).toFixed(0)}%` : '-'}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'isActive',
         header: 'Status',
         cell: ({ row }) => {
-          const invitation = row.original
-          const expired = isExpired(invitation.expiresAt)
-          const status = expired ? 'EXPIRED' : invitation.status
-          const statusInfo = statusMap[status]
-
-          return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-        },
-        filterFn: (row, _id, value) => {
-          const invitation = row.original
-          const expired = isExpired(invitation.expiresAt)
-          const status = expired ? 'EXPIRED' : invitation.status
-          return value.includes(status)
-        },
-      },
-      {
-        accessorKey: 'createdAt',
-        header: ({ column }) => {
+          const isActive = row.getValue('isActive') as boolean
           return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === 'asc')
-              }
-            >
-              Enviado
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            <Badge variant={isActive ? 'success' : 'destructive'}>
+              {isActive ? (
+                <>
+                  <CheckCircle className="mr-1 h-3 w-3" />
+                  Ativo
+                </>
+              ) : (
+                <>
+                  <XCircle className="mr-1 h-3 w-3" />
+                  Inativo
+                </>
+              )}
+            </Badge>
           )
         },
-        cell: ({ row }) => (
-          <div className="text-muted-foreground">
-            {formatDate(row.getValue('createdAt'))}
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'expiresAt',
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === 'asc')
-              }
-            >
-              Expira
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
-        cell: ({ row }) => (
-          <div className="text-muted-foreground">
-            {formatDate(row.getValue('expiresAt'))}
-          </div>
-        ),
       },
       {
         id: 'actions',
         header: () => <div className="text-right">Ações</div>,
         cell: ({ row }) => {
-          const invitation = row.original
-          const expired = isExpired(invitation.expiresAt)
-          const isLoadingResend = resendInvitation.isPending
-          const isLoadingCancel = cancelInvitation.isPending
+          const template = row.original
+          const isLoadingUpdate = updatePhaseTemplate.isPending
+          const isLoadingDelete = deletePhaseTemplate.isPending
 
           return (
             <div className="text-right">
@@ -175,9 +180,9 @@ export function InvitationsTable({
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={isLoadingResend || isLoadingCancel}
+                    disabled={isLoadingUpdate || isLoadingDelete}
                   >
-                    {isLoadingResend || isLoadingCancel ? (
+                    {isLoadingUpdate || isLoadingDelete ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <MoreHorizontal className="h-4 w-4" />
@@ -186,37 +191,41 @@ export function InvitationsTable({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {invitation.status === 'PENDING' && !expired && (
-                    <DropdownMenuItem
-                      onClick={() =>
-                        resendInvitation.mutate({
-                          invitationId: invitation.id,
-                          email: invitation.email,
-                        })
-                      }
-                    >
-                      <Mail className="mr-2 h-4 w-4" />
-                      Reenviar convite
-                    </DropdownMenuItem>
-                  )}
-                  {invitation.status === 'PENDING' && (
-                    <DropdownMenuItem
-                      onClick={() =>
-                        cancelInvitation.mutate({ invitationId: invitation.id })
-                      }
-                      className="text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Cancelar convite
-                    </DropdownMenuItem>
-                  )}
-                  {(invitation.status === 'ACCEPTED' ||
-                    invitation.status === 'CANCELLED' ||
-                    expired) && (
-                    <DropdownMenuItem disabled>
-                      Nenhuma ação disponível
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem
+                    onClick={() => setEditingTemplate(template)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      updatePhaseTemplate.mutate({
+                        phaseTemplateId: template.id,
+                        data: { isActive: !template.isActive },
+                      })
+                    }
+                  >
+                    {template.isActive ? (
+                      <>
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Desativar
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Ativar
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      deletePhaseTemplate.mutate({ phaseTemplateId: template.id })
+                    }
+                    className="text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -224,11 +233,11 @@ export function InvitationsTable({
         },
       },
     ],
-    [resendInvitation, cancelInvitation]
+    [updatePhaseTemplate, deletePhaseTemplate]
   )
 
   const table = useReactTable({
-    data: invitations,
+    data: phaseTemplates,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -247,16 +256,16 @@ export function InvitationsTable({
     },
   })
 
-  if (invitations.length === 0) {
+  if (phaseTemplates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Mail className="h-12 w-12 text-muted-foreground" />
-        <h3 className="text-lg font-semibold">Nenhum convite enviado</h3>
+        <FileText className="h-12 w-12 text-muted-foreground" />
+        <h3 className="text-lg font-semibold">Nenhum template criado</h3>
         <p className="text-sm text-muted-foreground">
-          Comece convidando um aluno para sua plataforma
+          Comece criando seu primeiro template de fase
         </p>
         <div className="py-2">
-          <InviteStudentDialog tenantId={tenantId} />
+          <CreatePhaseTemplateDialog tenantId={tenantId} />
         </div>
       </div>
     )
@@ -266,14 +275,18 @@ export function InvitationsTable({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <Input
-          placeholder="Filtrar por email..."
-          value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+          placeholder="Filtrar por nome..."
+          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
-            table.getColumn('email')?.setFilterValue(event.target.value)
+            table.getColumn('name')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <InviteStudentDialog tenantId={tenantId} />
+        <CreatePhaseTemplateDialog
+          tenantId={tenantId}
+          editingTemplate={editingTemplate}
+          onClose={() => setEditingTemplate(null)}
+        />
       </div>
 
       <div className="rounded-md border">
@@ -329,7 +342,7 @@ export function InvitationsTable({
 
       <div className="flex items-center justify-between px-2">
         <div className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} convite(s) no total
+          {table.getFilteredRowModel().rows.length} template(s) no total
         </div>
         <div className="flex items-center space-x-2">
           <Button

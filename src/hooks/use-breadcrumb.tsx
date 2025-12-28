@@ -19,6 +19,8 @@ const routeLabels: Record<string, string> = {
   courses: 'Cursos',
   students: 'Alunos',
   mentors: 'Mentores',
+  invitations: 'Convites',
+  'phase-templates': 'Templates de Fase',
 }
 
 export function useBreadcrumb(): BreadcrumbItem[] {

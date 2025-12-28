@@ -13,7 +13,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { AuthContext } from '@/src/contexts/auth-context'
-import { TenantComponent } from './tenant-component'
+import { TenantComponent } from '../tenant/tenant-component'
 
 const data = {
   navMain: [
@@ -87,7 +87,12 @@ export function SidebarStudent({
 
   // Define o tenant inicial quando o usuário estiver disponível
   React.useEffect(() => {
-    if (user && user.userTenants && user.userTenants.length > 0 && !currentTenantId) {
+    if (
+      user &&
+      user.userTenants &&
+      user.userTenants.length > 0 &&
+      !currentTenantId
+    ) {
       setCurrentTenantId(user.userTenants[0].tenantId)
     }
   }, [user, currentTenantId])

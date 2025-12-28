@@ -26,7 +26,11 @@ export default function MentorDashboard() {
     )
   }
 
-  if (!isAuthenticate || !user || (user.role !== 'MENTOR' && user.role !== 'OWNER')) {
+  if (
+    !isAuthenticate ||
+    !user ||
+    (user.role !== 'MENTOR' && user.role !== 'OWNER')
+  ) {
     return null
   }
 
@@ -44,13 +48,17 @@ export default function MentorDashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-card p-6 rounded-lg border border-border">
-          <p className="text-sm text-muted-foreground mb-1">Total de Vagas Criadas</p>
+          <p className="text-sm text-muted-foreground mb-1">
+            Total de Vagas Criadas
+          </p>
           <p className="text-3xl font-bold text-foreground">24</p>
           <p className="text-sm text-chart-2 mt-2">+12% este mês</p>
         </div>
 
         <div className="bg-card p-6 rounded-lg border border-border">
-          <p className="text-sm text-muted-foreground mb-1">Candidaturas Recebidas</p>
+          <p className="text-sm text-muted-foreground mb-1">
+            Candidaturas Recebidas
+          </p>
           <p className="text-3xl font-bold text-foreground">156</p>
           <p className="text-sm text-chart-2 mt-2">+8% este mês</p>
         </div>
@@ -62,7 +70,9 @@ export default function MentorDashboard() {
         </div>
 
         <div className="bg-card p-6 rounded-lg border border-border">
-          <p className="text-sm text-muted-foreground mb-1">Mentorias Finalizadas</p>
+          <p className="text-sm text-muted-foreground mb-1">
+            Mentorias Finalizadas
+          </p>
           <p className="text-3xl font-bold text-foreground">8</p>
           <p className="text-sm text-muted-foreground mt-2">Este mês</p>
         </div>
